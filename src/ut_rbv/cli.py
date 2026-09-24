@@ -230,7 +230,10 @@ def download(
 
 @main.command()
 @click.argument("code")
-def inspect(code: str):
+@click.option("-c", "--cookie", help="Session cookie PHPSESSID (untuk akun SSO ecampus)")
+@click.option("-u", "--username", envvar="UT_USERNAME", help="Username akun RBV / Tuton")
+@click.option("-p", "--password", envvar="UT_PASSWORD", help="Password akun RBV / Tuton")
+def inspect(code: str, cookie: Optional[str], username: Optional[str], password: Optional[str]):
     """Lihat struktur modul dan daftar bab buku tanpa mengunduh."""
     print_banner()
 
@@ -242,9 +245,27 @@ def inspect(code: str):
 
     async def run_inspect():
         async with SessionManager() as session:
+            if cookie:
+                session.set_session_cookie(cookie)
+            elif username and password:
+                with console.status("[cyan]Melakukan login ke RBV UT...[/cyan]"):
+                    try:
+                        await session.login_with_credentials(username, password, probe_code=norm_code)
+                    except Exception as e:
+                        console.print(f"[bold red]Gagal login:[/bold red] {e}")
+                        sys.exit(1)
+
             with console.status(f"[cyan]Mengambil struktur buku {norm_code}...[/cyan]"):
                 try:
                     book = await CatalogParser.fetch_book(session, norm_code)
+                except SessionExpiredError:
+                    console.print(
+                        f"\n[bold red]Autentikasi Diperlukan:[/bold red] Server UT mewajibkan login untuk mengakses buku '{norm_code}'.\n"
+                        f"[yellow]Solusi:[/yellow] Jalankan kembali dengan menyertakan cookie SSO atau kredensial akun UT:\n"
+                        f"  [cyan]ut-rbv inspect {norm_code} --cookie \"PHPSESSID=...\"[/cyan]\n"
+                        f"  [cyan]ut-rbv inspect {norm_code} -u NIM -p PASSWORD[/cyan]"
+                    )
+                    sys.exit(1)
                 except Exception as e:
                     console.print(f"[bold red]Gagal mengambil data buku:[/bold red] {e}")
                     sys.exit(1)

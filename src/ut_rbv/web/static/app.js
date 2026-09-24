@@ -66,7 +66,9 @@ inspectForm.addEventListener("submit", async (e) => {
         currentBook = data;
         renderBookDetails(data);
     } catch (err) {
-        alert("Error: " + err.message);
+        const authDetails = document.getElementById("authDetails");
+        if (authDetails) authDetails.open = true;
+        alert(err.message);
     } finally {
         btnInspect.disabled = false;
         btnInspect.querySelector(".btn-text").textContent = "Periksa Buku";

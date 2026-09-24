@@ -46,13 +46,13 @@
                     </div>
 
                     <!-- Auth Accordion -->
-                    <details class="auth-details" id="authDetails">
-                        <summary>Pengaturan Autentikasi (Opsional / Mahasiswa SSO)</summary>
+                    <details class="auth-details" id="authDetails" open>
+                        <summary>Pengaturan Autentikasi (Wajib: Cookie Sesi atau Akun RBV)</summary>
                         <div class="auth-fields">
                             <div class="form-group">
-                                <label for="cookieInput">Session Cookie (PHPSESSID)</label>
-                                <input type="text" id="cookieInput" placeholder="Nilai PHPSESSID dari browser">
-                                <small class="helper-text">Gunakan ini jika Anda login via SSO Microsoft (ecampus.ut.ac.id).</small>
+                                <label for="cookieInput">Session Cookie (PHPSESSID) — <span style="color: var(--primary);">Rekomendasi Akun SSO</span></label>
+                                <input type="text" id="cookieInput" placeholder="Contoh: PHPSESSID=fhmrhhth1vgkisr01a3e8qso0c">
+                                <small class="helper-text">Salin dari browser setelah login ke pustaka.ut.ac.id via SSO Microsoft (ecampus.ut.ac.id).</small>
                             </div>
                             <div class="form-row">
                                 <div class="form-group col">
@@ -64,6 +64,7 @@
                                     <input type="password" id="passwordInput" placeholder="••••••••">
                                 </div>
                             </div>
+                            <small class="helper-text" style="display: block; margin-top: 4px; color: var(--text-muted);">*Pilih salah satu: masukkan Cookie PHPSESSID ATAU Username & Password.</small>
                         </div>
                     </details>
 

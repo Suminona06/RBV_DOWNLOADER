@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ut_rbv import __version__
-from ut_rbv.core.auth import InvalidCredentialsError
+from ut_rbv.core.auth import InvalidCredentialsError, SessionExpiredError
 from ut_rbv.core.catalog import CatalogParser, Book, BookSection, BookNotFoundError
 from ut_rbv.core.downloader import PageDownloader
 from ut_rbv.core.session import SessionManager
@@ -85,6 +85,11 @@ async def inspect_book(req: InspectRequest):
             book = await CatalogParser.fetch_book(session, norm_code)
         except BookNotFoundError as e:
             raise HTTPException(status_code=404, detail=str(e))
+        except SessionExpiredError:
+            raise HTTPException(
+                status_code=401,
+                detail=f"Server UT mewajibkan login untuk mengakses buku '{norm_code}'. Silakan buka menu 'Pengaturan Autentikasi' dan masukkan Cookie Sesi (PHPSESSID) atau NIM & Password Anda.",
+            )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Gagal mengambil katalog: {e}")
 
