@@ -150,9 +150,9 @@ class PageDownloader:
                     await self._apply_jitter(0.05, 0.15)
                     jres = await self.session.get(json_url, params=json_params, headers=json_headers)
                     if jres.is_success and jres.text.strip():
-                        raw_text = jres.text.strip()
+                        raw_text = jres.text.strip().rstrip(";")
                         if "(" in raw_text and raw_text.endswith(")"):
-                            raw_text = raw_text[raw_text.find("(") + 1 : raw_text.rfind(")")]
+                            raw_text = raw_text[raw_text.find("(") + 1 : raw_text.rfind(")")].strip()
                         # Validate json parseable
                         parsed = json.loads(raw_text)
                         json_path.write_text(json.dumps(parsed, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -309,3 +309,76 @@ class TestPDFBuilder:
         doc.close()
 
 
+class TestPDFOptimizer:
+    """Test suite for PDFOptimizer image and file compression."""
+
+    def test_optimize_image_bytes_none(self):
+        from ut_rbv.pdf.optimizer import PDFOptimizer
+        import io
+        from PIL import Image
+
+        buf = io.BytesIO()
+        Image.new("RGB", (100, 100), color="blue").save(buf, format="JPEG", quality=95)
+        raw_bytes = buf.getvalue()
+
+        # 'none' level should return identical bytes
+        res = PDFOptimizer.optimize_image_bytes(raw_bytes, compress_level="none")
+        assert res == raw_bytes
+
+    def test_optimize_image_bytes_compression(self):
+        from ut_rbv.pdf.optimizer import PDFOptimizer
+        import io
+        from PIL import Image
+
+        # Create large uncompressed-like image
+        buf = io.BytesIO()
+        img = Image.new("RGB", (300, 300), color="red")
+        img.save(buf, format="PNG")
+        png_bytes = buf.getvalue()
+
+        opt_bytes = PDFOptimizer.optimize_image_bytes(png_bytes, compress_level="high")
+        assert isinstance(opt_bytes, bytes)
+        assert len(opt_bytes) > 0
+
+    def test_optimize_image_bytes_invalid_fallback(self):
+        from ut_rbv.pdf.optimizer import PDFOptimizer
+
+        corrupt = b"this is not an image"
+        res = PDFOptimizer.optimize_image_bytes(corrupt, compress_level="medium")
+        assert res == corrupt
+
+    def test_optimize_image_file_rgba_conversion(self, tmp_path):
+        from ut_rbv.pdf.optimizer import PDFOptimizer
+        from PIL import Image
+
+        rgba_img = tmp_path / "test_rgba.png"
+        Image.new("RGBA", (150, 150), color=(255, 0, 0, 128)).save(rgba_img)
+
+        out_jpg = tmp_path / "test_opt.jpg"
+        result = PDFOptimizer.optimize_image_file(rgba_img, output_path=out_jpg, compress_level="medium")
+        assert result.exists()
+        with Image.open(result) as img:
+            assert img.format == "JPEG"
+            assert img.mode == "RGB"
+
+    def test_optimize_image_file_level_none(self, tmp_path):
+        from ut_rbv.pdf.optimizer import PDFOptimizer
+        from PIL import Image
+
+        src_img = tmp_path / "test_none.jpg"
+        Image.new("RGB", (50, 50), color="green").save(src_img)
+
+        result = PDFOptimizer.optimize_image_file(src_img, compress_level="none")
+        assert result == src_img
+
+    def test_optimize_image_file_error_fallback(self, tmp_path):
+        from ut_rbv.pdf.optimizer import PDFOptimizer
+
+        bad_file = tmp_path / "corrupt.jpg"
+        bad_file.write_bytes(b"corrupt")
+
+        result = PDFOptimizer.optimize_image_file(bad_file, compress_level="medium")
+        assert result == bad_file
+
+
+

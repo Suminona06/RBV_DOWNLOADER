@@ -227,10 +227,9 @@ class CatalogParser:
             if not res.is_success or not res.text.strip():
                 return 0
 
-            # Strip jsonp wrapper if present: e.g. callback({...}) or ([{...}])
-            raw_text = res.text.strip()
+            raw_text = res.text.strip().rstrip(";")
             if "(" in raw_text and raw_text.endswith(")"):
-                raw_text = raw_text[raw_text.find("(") + 1 : raw_text.rfind(")")]
+                raw_text = raw_text[raw_text.find("(") + 1 : raw_text.rfind(")")].strip()
 
             data = json.loads(raw_text)
             if isinstance(data, list) and data:

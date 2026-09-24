@@ -129,7 +129,9 @@ class SessionManager:
         if not html_text:
             return False
         # RBV shows "About RBV V.2" or input with name="ccaptcha" / name="password"
-        has_captcha_input = 'name="ccaptcha"' in html_text or "ccaptcha" in html_text
+        if "about rbv" in html_text.lower():
+            return True
+        has_captcha_input = 'name="ccaptcha"' in html_text or "ccaptcha" in html_text or "captcha" in html_text.lower()
         has_password_input = 'name="password"' in html_text or 'type="password"' in html_text
         return has_captcha_input and has_password_input
 

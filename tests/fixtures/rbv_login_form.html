@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Ruang Baca Virtual - Login</title>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Silakan Masuk ke Ruang Baca Virtual UT</h2>
+        <form action="/login.php" method="POST" id="form-login">
+            <input type="hidden" name="csrf_token" value="abc123xyz" />
+            <label for="username">NIM / Username:</label>
+            <input type="text" id="username" name="username" value="" />
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" value="" />
+            
+            <div class="captcha-wrapper">
+                <span class="captcha-question">Hitung: 15 + 7 = ?</span>
+                <input type="text" name="ccaptcha" id="ccaptcha" />
+            </div>
+            
+            <button type="submit" id="btn-submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

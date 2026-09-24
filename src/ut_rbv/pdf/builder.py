@@ -84,8 +84,6 @@ class PDFBuilder:
             if p_res.json_path and p_res.json_path.exists():
                 try:
                     raw_data = json.loads(p_res.json_path.read_text(encoding="utf-8"))
-                    if isinstance(raw_data, list) and raw_data:
-                        raw_data = raw_data[0]
                     text_layers[p_res.page_num] = raw_data
                     inject_text_layer(page, raw_data, img_width=w, img_height=h)
                 except Exception as e:
@@ -149,8 +147,6 @@ class PDFBuilder:
                 if p_res.json_path and p_res.json_path.exists():
                     try:
                         raw_data = json.loads(p_res.json_path.read_text(encoding="utf-8"))
-                        if isinstance(raw_data, list) and raw_data:
-                            raw_data = raw_data[0]
                         sec_texts[p_res.page_num] = raw_data
                         inject_text_layer(page, raw_data, img_width=w, img_height=h)
                     except Exception as e:

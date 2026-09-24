@@ -108,3 +108,84 @@ class TestCLI:
         pdf_files = list(out_dir.glob("*.pdf"))
         assert len(pdf_files) == 1
         assert "EKMA4111" in pdf_files[0].name
+
+    @respx.mock
+    def test_cli_download_no_merge(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("UT_RBV_CACHE_DIR", str(tmp_path / "cache"))
+        respx.get("https://pustaka.ut.ac.id/reader/index.php").mock(
+            return_value=httpx.Response(200, text=SAMPLE_CATALOG_HTML)
+        )
+        respx.get("https://pustaka.ut.ac.id/reader/services/view.php").mock(
+            side_effect=lambda req: httpx.Response(
+                200,
+                content=DUMMY_JPEG if req.url.params.get("format") == "jpg" else DUMMY_JSONP.encode("utf-8")
+            )
+        )
+
+        out_dir = tmp_path / "downloads_split"
+        runner = CliRunner()
+        result = runner.invoke(main, [
+            "download",
+            "EKMA4111",
+            "--output", str(out_dir),
+            "--split",
+            "--modules", "M1",
+        ])
+
+        assert result.exit_code == 0
+        assert "Selesai!" in result.output
+        pdf_files = list(out_dir.glob("*.pdf"))
+        assert len(pdf_files) >= 1
+
+    @respx.mock
+    def test_cli_download_with_cookie(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("UT_RBV_CACHE_DIR", str(tmp_path / "cache"))
+        respx.get("https://pustaka.ut.ac.id/reader/index.php").mock(
+            return_value=httpx.Response(200, text=SAMPLE_CATALOG_HTML)
+        )
+        respx.get("https://pustaka.ut.ac.id/reader/services/view.php").mock(
+            return_value=httpx.Response(200, content=DUMMY_JPEG)
+        )
+
+        out_dir = tmp_path / "downloads_cookie"
+        runner = CliRunner()
+        result = runner.invoke(main, [
+            "download",
+            "EKMA4111",
+            "--cookie", "PHPSESSID=mock12345",
+            "--output", str(out_dir),
+            "--modules", "M1",
+        ])
+        assert result.exit_code == 0
+
+    @respx.mock
+    def test_cli_download_no_sections_found(self, tmp_path):
+        respx.get("https://pustaka.ut.ac.id/reader/index.php").mock(
+            return_value=httpx.Response(200, text="<html><body>No modules</body></html>")
+        )
+
+        runner = CliRunner()
+        result = runner.invoke(main, [
+            "download",
+            "EKMA4111",
+            "--modules", "M99",
+        ])
+        assert result.exit_code != 0
+        assert "Gagal menemukan daftar modul" in result.output
+
+    def test_cli_web_command(self, monkeypatch):
+        ran = {}
+
+        def mock_run(app_instance, host, port, log_level):
+            ran["host"] = host
+            ran["port"] = port
+            ran["log_level"] = log_level
+
+        monkeypatch.setattr("uvicorn.run", mock_run)
+
+        runner = CliRunner()
+        result = runner.invoke(main, ["web", "--port", "9090", "--no-browser"])
+        assert result.exit_code == 0
+        assert ran["port"] == 9090
+
+

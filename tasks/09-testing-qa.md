@@ -21,16 +21,16 @@ Fitur ini bertujuan membangun rangkaian pengujian (*test suite*) terotomasi untu
 Sebagai pengembang, saya ingin setiap fungsi logika murni (seperti solver matematika captcha, parser string argumen, kalkulator offset bookmarks) memiliki unit test dengan cakupan kasus tepi (*edge cases*).
 
 **Kriteria Penerimaan (Acceptance Criteria):**
-- [ ] Pengujian matematika captcha mencakup operasi penjumlahan, pengurangan, perkalian, dan pembagian.
-- [ ] Pengujian parser URL dan sanitasi nama modul (misal `M1.pdf` -> `M1`, handling nama modul dengan spasi atau karakter khusus).
-- [ ] Pengujian parser payload JSONP: memvalidasi penanganan callback wrapper dan struktur koordinat teks.
+- [x] Pengujian matematika captcha mencakup operasi penjumlahan, pengurangan, perkalian, dan pembagian.
+- [x] Pengujian parser URL dan sanitasi nama modul (misal `M1.pdf` -> `M1`, handling nama modul dengan spasi atau karakter khusus).
+- [x] Pengujian parser payload JSONP: memvalidasi penanganan callback wrapper dan struktur koordinat teks.
 
 ### User Story 2: Pengujian Jaringan Terisolasi (Mock Server)
 Sebagai pengembang, saya ingin menjalankan pengujian unduh tanpa perlu terhubung langsung ke server produksi UT atau memerlukan kredensial asli setiap kali tes dijalankan.
 
 **Kriteria Penerimaan (Acceptance Criteria):**
-- [ ] Menggunakan library mock HTTP seperti `respx` (untuk `httpx`) atau `pytest-httpx`.
-- [ ] Mensimulasikan skenario server UT:
+- [x] Menggunakan library mock HTTP seperti `respx` (untuk `httpx`) atau `pytest-httpx`.
+- [x] Mensimulasikan skenario server UT:
   - Sukses login dan pengunduhan normal.
   - Simulasi error HTTP 429 Too Many Requests untuk memverifikasi exponential backoff.
   - Simulasi sesi kedaluwarsa ("About RBV V.2") untuk memverifikasi re-autentikasi otomatis.
@@ -40,10 +40,10 @@ Sebagai pengembang, saya ingin menjalankan pengujian unduh tanpa perlu terhubung
 Sebagai pengguna, saya ingin memastikan bahwa PDF yang dibuat oleh sistem selalu valid, tidak korup, dan memenuhi standar spesifikasi PDF.
 
 **Kriteria Penerimaan (Acceptance Criteria):**
-- [ ] Tes membuka PDF hasil generate dengan `PyMuPDF` tanpa ada peringatan sintaks.
-- [ ] Memverifikasi jumlah halaman PDF sesuai dengan jumlah citra input.
-- [ ] Memverifikasi bahwa outline / bookmarks yang disuntikkan dapat dibaca kembali dengan struktur hierarki yang benar.
-- [ ] Memverifikasi bahwa teks yang disuntikkan dapat dicari menggunakan `doc[page_num].get_text()`.
+- [x] Tes membuka PDF hasil generate dengan `PyMuPDF` tanpa ada peringatan sintaks.
+- [x] Memverifikasi jumlah halaman PDF sesuai dengan jumlah citra input.
+- [x] Memverifikasi bahwa outline / bookmarks yang disuntikkan dapat dibaca kembali dengan struktur hierarki yang benar.
+- [x] Memverifikasi bahwa teks yang disuntikkan dapat dicari menggunakan `doc[page_num].get_text()`.
 
 ---
 

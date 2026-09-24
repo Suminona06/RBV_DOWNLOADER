@@ -58,6 +58,9 @@ def parse_page_text_data(json_input: Union[Dict[str, Any], List[Dict[str, Any]],
     if isinstance(data, list):
         if not data:
             return None
+        # If it's a list of text items directly [{"text": "...", "x": ...}, ...]
+        if isinstance(data[0], dict) and "text" in data[0] and isinstance(data[0]["text"], str):
+            return {"text": data}
         return data[0]
     elif isinstance(data, dict):
         return data
@@ -94,6 +97,11 @@ def inject_text_layer(
         return False
 
     raw_items = page_data.get("text", [])
+    if isinstance(raw_items, str):
+        raw_items = [{"text": raw_items, "left": 0, "top": 0}]
+    elif not isinstance(raw_items, list):
+        return False
+
     if not raw_items:
         return False
 
@@ -111,8 +119,8 @@ def inject_text_layer(
     # Sort text items to preserve natural reading order (top-to-bottom, left-to-right)
     # Using small y-bucket tolerance of 4 pixels
     def sort_key(item: Dict[str, Any]) -> tuple:
-        top = float(item.get("top", 0))
-        left = float(item.get("left", 0))
+        top = float(item.get("top", item.get("y", 0)))
+        left = float(item.get("left", item.get("x", 0)))
         bucket = round(top / 4.0)
         return (bucket, left)
 
@@ -124,8 +132,8 @@ def inject_text_layer(
         if not text_content:
             continue
 
-        left = float(item.get("left", 0)) * scale_x
-        top = float(item.get("top", 0)) * scale_y
+        left = float(item.get("left", item.get("x", 0))) * scale_x
+        top = float(item.get("top", item.get("y", 0))) * scale_y
         w = float(item.get("width", 0)) * scale_x
         h = float(item.get("height", 12)) * scale_y
 

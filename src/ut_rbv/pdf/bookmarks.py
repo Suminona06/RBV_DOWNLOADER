@@ -49,17 +49,34 @@ class TOCBuilder:
         absolute_page: int,
     ) -> List[BookmarkItem]:
         """Scan a page's text metadata for sub-sections (e.g. Kegiatan Belajar)."""
+        raw_items = []
         if isinstance(text_data, list):
-            text_data = text_data[0] if text_data else {}
-        if not isinstance(text_data, dict):
-            return []
+            if text_data and isinstance(text_data[0], dict) and "text" in text_data[0]:
+                val = text_data[0]["text"]
+                if isinstance(val, list):
+                    raw_items = val
+                else:
+                    raw_items = text_data
+            else:
+                raw_items = text_data
+        elif isinstance(text_data, dict):
+            val = text_data.get("text", [])
+            if isinstance(val, list):
+                raw_items = val
+            elif isinstance(val, str):
+                raw_items = [text_data]
 
         subsections: List[BookmarkItem] = []
-        raw_items = text_data.get("text", [])
         seen_titles = set()
 
         for item in raw_items:
-            line = str(item.get("text", "")).strip()
+            if isinstance(item, dict):
+                line = str(item.get("text", "")).strip()
+            elif isinstance(item, str):
+                line = item.strip()
+            else:
+                continue
+
             if not line or len(line) < 4:
                 continue
 

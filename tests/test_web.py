@@ -101,3 +101,91 @@ class TestWebDashboard:
         assert res.status_code == 200
         assert res.content == b"%PDF-1.4 mock pdf content"
         assert "application/pdf" in res.headers["content-type"]
+
+    @respx.mock
+    def test_api_download_full_flow(self, client, tmp_path, monkeypatch):
+        from PIL import Image
+        import io
+
+        out_dir = tmp_path / "web_downloads"
+        cache_dir = tmp_path / "web_cache"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr("ut_rbv.web.app.get_output_dir", lambda: out_dir)
+        monkeypatch.setenv("UT_RBV_CACHE_DIR", str(cache_dir))
+
+        buf = io.BytesIO()
+        Image.new("RGB", (200, 300), color="white").save(buf, format="JPEG")
+        dummy_img = buf.getvalue()
+
+        respx.get("https://pustaka.ut.ac.id/reader/index.php").mock(
+            return_value=httpx.Response(200, text=SAMPLE_CATALOG_HTML)
+        )
+        respx.get("https://pustaka.ut.ac.id/reader/services/view.php").mock(
+            side_effect=lambda req: httpx.Response(
+                200,
+                content=dummy_img if req.url.params.get("format") == "jpg" else b'([{"pages": 1, "text": []}])'
+            )
+        )
+
+        payload = {
+            "code": "EKMA4111",
+            "doc_ids": ["M1"],
+            "merge": True,
+            "compress": "medium",
+            "cookie": "PHPSESSID=mock_web_session",
+        }
+
+        res = client.post("/api/download", json=payload)
+        assert res.status_code == 200
+        task_id = res.json()["task_id"]
+
+        prog = client.get(f"/api/progress/{task_id}").json()
+        assert prog["status"] == "completed"
+        assert prog["percentage"] == 100
+        assert len(prog["generated_files"]) == 1
+
+        # Verify file can be downloaded
+        file_res = client.get(f"/api/files/{prog['generated_files'][0]['filename']}")
+        assert file_res.status_code == 200
+
+    @respx.mock
+    def test_api_download_split_flow(self, client, tmp_path, monkeypatch):
+        from PIL import Image
+        import io
+
+        out_dir = tmp_path / "web_split"
+        cache_dir = tmp_path / "web_split_cache"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr("ut_rbv.web.app.get_output_dir", lambda: out_dir)
+        monkeypatch.setenv("UT_RBV_CACHE_DIR", str(cache_dir))
+
+        buf = io.BytesIO()
+        Image.new("RGB", (200, 300), color="white").save(buf, format="JPEG")
+        dummy_img = buf.getvalue()
+
+        respx.get("https://pustaka.ut.ac.id/reader/index.php").mock(
+            return_value=httpx.Response(200, text=SAMPLE_CATALOG_HTML)
+        )
+        respx.get("https://pustaka.ut.ac.id/reader/services/view.php").mock(
+            side_effect=lambda req: httpx.Response(
+                200,
+                content=dummy_img if req.url.params.get("format") == "jpg" else b'([{"pages": 1, "text": []}])'
+            )
+        )
+
+        payload = {
+            "code": "EKMA4111",
+            "doc_ids": ["M1"],
+            "merge": False,
+            "compress": "none",
+            "cookie": "PHPSESSID=mock_split_session",
+        }
+
+        res = client.post("/api/download", json=payload)
+        assert res.status_code == 200
+        task_id = res.json()["task_id"]
+
+        prog = client.get(f"/api/progress/{task_id}").json()
+        assert prog["status"] == "completed"
+        assert len(prog["generated_files"]) >= 1
+
