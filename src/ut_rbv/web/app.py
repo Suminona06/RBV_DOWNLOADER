@@ -142,7 +142,7 @@ async def _run_download_task(task_id: str, req: DownloadRequest):
             state["total_pages"] = max(1, total_pages)
             state["current_stage"] = "Mengunduh Halaman Modul..."
 
-            downloader = PageDownloader(session=session, max_concurrency=4)
+            downloader = PageDownloader(session=session, max_concurrency=2)
             all_downloads: Dict[str, List] = {}
             completed_count = 0
 

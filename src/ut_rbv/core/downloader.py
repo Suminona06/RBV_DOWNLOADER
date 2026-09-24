@@ -52,8 +52,8 @@ class PageDownloader:
         self.enable_jitter = enable_jitter
         self.failed_pages: List[Tuple[str, int, str]] = []
 
-    async def _apply_jitter(self, min_ms: float = 0.1, max_ms: float = 0.25):
-        """Add slight random delay between network requests to be gentle on servers."""
+    async def _apply_jitter(self, min_ms: float = 0.6, max_ms: float = 1.5):
+        """Add realistic human delay between network requests to be gentle on UT servers and avoid WAF bans."""
         if self.enable_jitter:
             delay = random.uniform(min_ms, max_ms)
             await asyncio.sleep(delay)

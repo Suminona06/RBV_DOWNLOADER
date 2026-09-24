@@ -64,7 +64,7 @@ def main():
     default="medium",
     help="Tingkat kompresi citra JPEG (default: medium)",
 )
-@click.option("--workers", default=4, type=int, help="Batas unduhan paralel/concurrency (default: 4)")
+@click.option("--workers", default=2, type=int, help="Batas unduhan paralel/concurrency (default: 2)")
 @click.option("--no-text", is_flag=True, default=False, help="Jangan unduh layer teks searchable")
 @click.option("-v", "--verbose", is_flag=True, default=False, help="Tampilkan log rincian debug")
 def download(

@@ -44,21 +44,26 @@ class SessionManager:
         self.authenticated: bool = False
 
     def set_session_cookie(self, cookie_input: str) -> None:
-        """Set session cookie from string (e.g. 'PHPSESSID=abcdef12345' or raw token)."""
-        cookie_str = cookie_input.strip()
-        cookie_name = "PHPSESSID"
-        cookie_value = cookie_str
+        """Set session cookies from string (supports single token, 'PHPSESSID=...', or full cookie header)."""
+        raw = cookie_input.strip()
+        if raw.lower().startswith("cookie:"):
+            raw = raw[7:].strip()
 
-        if "=" in cookie_str:
-            parts = cookie_str.split("=", 1)
-            cookie_name = parts[0].strip()
-            cookie_value = parts[1].strip().strip(";")
+        pairs = [p.strip() for p in raw.split(";") if p.strip()]
+        for pair in pairs:
+            if "=" in pair:
+                name, val = pair.split("=", 1)
+                name = name.strip()
+                val = val.strip()
+            else:
+                name = "PHPSESSID"
+                val = pair.strip()
 
-        # Set cookie for pustaka.ut.ac.id domain
-        self.client.cookies.set(cookie_name, cookie_value, domain="pustaka.ut.ac.id")
-        self.client.cookies.set(cookie_name, cookie_value, domain="www.pustaka.ut.ac.id")
+            self.client.cookies.set(name, val, domain="pustaka.ut.ac.id")
+            self.client.cookies.set(name, val, domain="www.pustaka.ut.ac.id")
+
         self.authenticated = True
-        logger.info(f"Session cookie '{cookie_name}' berhasil diterapkan.")
+        logger.info(f"{len(pairs)} session cookie(s) berhasil diterapkan.")
 
     async def login_with_credentials(
         self,
@@ -174,6 +179,13 @@ class SessionManager:
             else:
                 self.authenticated = False
                 raise SessionExpiredError("Sesi telah kedaluwarsa atau belum terautentikasi.")
+
+        if "request rejected" in res.text.lower() and "support id" in res.text.lower():
+            raise UnreachableError(
+                "Akses ditolak oleh Firewall (WAF F5) server UT: 'Request Rejected'. "
+                "Sistem keamanan UT memblokir sesi ini karena pola unduh terdeteksi atau sesi kadaluwarsa. "
+                "Silakan perbarui login Anda di browser dan salin cookie terbaru."
+            )
 
         return res
 
