@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UT-RBV Downloader - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">📚</div>
+                <div class="brand-info">
+                    <h1>UT-RBV Downloader</h1>
+                    <p>Unduh Buku Materi Pokok (BMP) Ruang Baca Virtual ke PDF Berkualitas Tinggi</p>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="badge badge-accent">Searchable PDF</span>
+                <span class="badge badge-outline">Auto Bookmarks</span>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <main class="dashboard-grid">
+            <!-- Left Panel: Input & Settings -->
+            <section class="card panel-input">
+                <h2 class="card-title">1. Masukkan Informasi Buku</h2>
+                
+                <form id="inspectForm">
+                    <div class="form-group">
+                        <label for="bookCode">Kode Mata Kuliah <span class="required">*</span></label>
+                        <div class="input-with-button">
+                            <input type="text" id="bookCode" placeholder="Contoh: EKMA4111, MKDU4110" required autocomplete="off">
+                            <button type="submit" id="btnInspect" class="btn btn-primary">
+                                <span class="btn-text">Periksa Buku</span>
+                                <span class="spinner hidden"></span>
+                            </button>
+                        </div>
+                        <small class="helper-text">Masukkan 4-8 karakter kode mata kuliah UT.</small>
+                    </div>
+
+                    <!-- Auth Accordion -->
+                    <details class="auth-details" id="authDetails">
+                        <summary>Pengaturan Autentikasi (Opsional / Mahasiswa SSO)</summary>
+                        <div class="auth-fields">
+                            <div class="form-group">
+                                <label for="cookieInput">Session Cookie (PHPSESSID)</label>
+                                <input type="text" id="cookieInput" placeholder="Nilai PHPSESSID dari browser">
+                                <small class="helper-text">Gunakan ini jika Anda login via SSO Microsoft (ecampus.ut.ac.id).</small>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col">
+                                    <label for="usernameInput">Username RBV / Tuton</label>
+                                    <input type="text" id="usernameInput" placeholder="NIM / Username">
+                                </div>
+                                <div class="form-group col">
+                                    <label for="passwordInput">Password</label>
+                                    <input type="password" id="passwordInput" placeholder="••••••••">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- PDF Options -->
+                    <div class="pdf-options">
+                        <h3 class="section-subtitle">Opsi Keluaran Dokumen</h3>
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="compressLevel">Tingkat Kompresi</label>
+                                <select id="compressLevel">
+                                    <option value="medium" selected>Medium (Rekomendasi - Hemat & Jernih)</option>
+                                    <option value="high">High (Sangat Ringkas untuk Tablet)</option>
+                                    <option value="none">Original (Kualitas Citra Asli 100%)</option>
+                                </select>
+                            </div>
+                            <div class="form-group col">
+                                <label for="mergeMode">Struktur File</label>
+                                <select id="mergeMode">
+                                    <option value="true" selected>Gabung 1 Buku Utuh (Merged PDF)</option>
+                                    <option value="false">Pisah per Modul (Split PDFs)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Right Panel: Book Modules & Download Action -->
+            <section class="card panel-modules" id="modulesCard">
+                <div class="card-header-flex">
+                    <h2 class="card-title">2. Daftar Modul & Bab</h2>
+                    <div class="module-actions hidden" id="moduleActions">
+                        <button type="button" class="btn-link" id="btnSelectAll">Pilih Semua</button>
+                        <span class="divider">|</span>
+                        <button type="button" class="btn-link" id="btnDeselectAll">Kosongkan</button>
+                    </div>
+                </div>
+
+                <!-- Empty State Placeholder -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">📖</div>
+                    <p>Ketikkan kode mata kuliah di sebelah kiri lalu klik <strong>"Periksa Buku"</strong> untuk menampilkan daftar modul.</p>
+                </div>
+
+                <!-- Book Info Banner -->
+                <div class="book-banner hidden" id="bookBanner">
+                    <div class="book-info">
+                        <h3 id="displayBookTitle">EKMA4111 - Pengantar Bisnis</h3>
+                        <p id="displayBookMeta">Total: 9 Modul • Estimasi 450 Halaman</p>
+                    </div>
+                </div>
+
+                <!-- Modules Checklist -->
+                <div class="modules-list hidden" id="modulesList">
+                    <!-- Dynamic items rendered by JS -->
+                </div>
+
+                <!-- Download CTA -->
+                <div class="download-footer hidden" id="downloadFooter">
+                    <button type="button" id="btnStartDownload" class="btn btn-success btn-large">
+                        <span class="btn-icon">⬇️</span>
+                        <span>Mulai Unduh & Buat PDF</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Progress Modal / Card -->
+        <section class="card progress-card hidden" id="progressCard">
+            <div class="progress-header">
+                <div>
+                    <h3 id="progressTitle">Sedang Mengunduh Aset...</h3>
+                    <p class="progress-subtitle" id="progressSubtitle">Halaman 0 dari 0</p>
+                </div>
+                <span class="progress-percentage" id="progressPercentage">0%</span>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+            </div>
+
+            <div class="terminal-log" id="terminalLog">
+                <div class="log-line">Menunggu inisialisasi antrean unduhan...</div>
+            </div>
+
+            <div class="download-result hidden" id="downloadResult">
+                <div class="result-message">
+                    <span class="check-icon">✅</span>
+                    <span id="resultText">File PDF berhasil dibuat!</span>
+                </div>
+                <div class="result-buttons" id="resultButtons">
+                    <!-- Dynamic Download buttons -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Khusus penggunaan edukasi pribadi (*fair use*) mahasiswa Universitas Terbuka • UT-RBV Companion</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
