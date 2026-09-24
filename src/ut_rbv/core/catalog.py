@@ -219,7 +219,10 @@ class CatalogParser:
             "page": 1,
         }
         headers = {
-            "Referer": f"{session.base_url}index.php?modul={section.subfolder}",
+            "Referer": f"{session.base_url}index.php?subfolder={section.subfolder}/&doc={section.doc_id}.pdf",
+            "Sec-Fetch-Dest": "script",
+            "Sec-Fetch-Mode": "no-cors",
+            "Sec-Fetch-Site": "same-origin",
         }
 
         try:

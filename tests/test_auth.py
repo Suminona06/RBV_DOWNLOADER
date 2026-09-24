@@ -105,6 +105,15 @@ class TestSessionManager:
         cookie_val = manager.client.cookies.get("PHPSESSID", domain="pustaka.ut.ac.id")
         assert cookie_val == "raw_token_xyz987"
 
+    def test_set_multi_cookie_space_separated(self):
+        manager = SessionManager()
+        manager.set_session_cookie(
+            "PHPSESSID=42s6cuke04v13vsadesnnvfr0a TS019a5912=0151f104f05b4637a95805424703ad87b73b1acd93c3b67b8ea831c26a9229a44f33aaf072b48286c906cf3920d2d576fbeb5380c0"
+        )
+        assert manager.authenticated is True
+        assert manager.client.cookies.get("PHPSESSID", domain="pustaka.ut.ac.id") == "42s6cuke04v13vsadesnnvfr0a"
+        assert manager.client.cookies.get("TS019a5912", domain="pustaka.ut.ac.id") == "0151f104f05b4637a95805424703ad87b73b1acd93c3b67b8ea831c26a9229a44f33aaf072b48286c906cf3920d2d576fbeb5380c0"
+
     @pytest.mark.asyncio
     @respx.mock
     async def test_login_success(self):

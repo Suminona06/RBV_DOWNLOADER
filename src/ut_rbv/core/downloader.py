@@ -97,7 +97,11 @@ class PageDownloader:
                     "page": page_num,
                 }
                 img_headers = {
-                    "Referer": f"{self.session.base_url}index.php?modul={section.subfolder}",
+                    "Referer": f"{self.session.base_url}index.php?subfolder={section.subfolder}/&doc={section.doc_id}.pdf",
+                    "Sec-Fetch-Dest": "image",
+                    "Sec-Fetch-Mode": "no-cors",
+                    "Sec-Fetch-Site": "same-origin",
+                    "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
                 }
 
                 for attempt in range(1, self.max_retries + 1):
@@ -144,10 +148,14 @@ class PageDownloader:
                     "page": page_num,
                 }
                 json_headers = {
-                    "Referer": f"{self.session.base_url}index.php?modul={section.subfolder}",
+                    "Referer": f"{self.session.base_url}index.php?subfolder={section.subfolder}/&doc={section.doc_id}.pdf",
+                    "Sec-Fetch-Dest": "script",
+                    "Sec-Fetch-Mode": "no-cors",
+                    "Sec-Fetch-Site": "same-origin",
+                    "Accept": "*/*",
                 }
                 try:
-                    await self._apply_jitter(0.05, 0.15)
+                    await self._apply_jitter(0.2, 0.5)
                     jres = await self.session.get(json_url, params=json_params, headers=json_headers)
                     if jres.is_success and jres.text.strip():
                         raw_text = jres.text.strip().rstrip(";")

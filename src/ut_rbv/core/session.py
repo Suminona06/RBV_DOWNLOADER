@@ -1,6 +1,7 @@
 """Session management, HTTP client, and authentication workflow for UT-RBV."""
 
 import logging
+import re
 from typing import Optional, Dict, Any
 import httpx
 
@@ -15,9 +16,17 @@ from ut_rbv.core.auth import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Sec-Ch-Ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"Windows"',
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Requests": "1",
 }
 
 DEFAULT_BASE_URL = "https://pustaka.ut.ac.id/reader/"
@@ -49,21 +58,20 @@ class SessionManager:
         if raw.lower().startswith("cookie:"):
             raw = raw[7:].strip()
 
-        pairs = [p.strip() for p in raw.split(";") if p.strip()]
-        for pair in pairs:
-            if "=" in pair:
-                name, val = pair.split("=", 1)
-                name = name.strip()
-                val = val.strip()
-            else:
-                name = "PHPSESSID"
-                val = pair.strip()
-
-            self.client.cookies.set(name, val, domain="pustaka.ut.ac.id")
-            self.client.cookies.set(name, val, domain="www.pustaka.ut.ac.id")
-
-        self.authenticated = True
-        logger.info(f"{len(pairs)} session cookie(s) berhasil diterapkan.")
+        # Find all name=value pairs using regex (supports semicolon, space, newline separators)
+        matches = re.findall(r"([a-zA-Z0-9_\-]+)=([^\s;]+)", raw)
+        if matches:
+            for name, val in matches:
+                self.client.cookies.set(name, val, domain="pustaka.ut.ac.id")
+                self.client.cookies.set(name, val, domain="www.pustaka.ut.ac.id")
+            self.authenticated = True
+            logger.info(f"{len(matches)} session cookie(s) diterapkan: {[m[0] for m in matches]}")
+        elif raw:
+            # Single raw token without name (e.g. just the session hash)
+            self.client.cookies.set("PHPSESSID", raw, domain="pustaka.ut.ac.id")
+            self.client.cookies.set("PHPSESSID", raw, domain="www.pustaka.ut.ac.id")
+            self.authenticated = True
+            logger.info("Raw token PHPSESSID diterapkan.")
 
     async def login_with_credentials(
         self,
