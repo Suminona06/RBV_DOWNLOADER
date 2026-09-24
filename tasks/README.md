@@ -17,7 +17,7 @@ Dokumen ini memetakan seluruh kebutuhan dalam [PRD_UT_RBV_DOWNLOADER.md](file://
 | **TASK-06** | Penyusun PDF & Pengoptimal Kompresi Gambar | P0 (Must) | 2 hari | ✅ Selesai | [06-pdf-assembly.md](file:///home/itpc/UT-RBV/tasks/06-pdf-assembly.md) |
 | **TASK-07** | Antarmuka CLI Interaktif (Rich & Click) | P0 (Must) | 2 hari | ✅ Selesai | [07-cli-interface.md](file:///home/itpc/UT-RBV/tasks/07-cli-interface.md) |
 | **TASK-08** | Web Dashboard Lokal / GUI Minimalis | P1 (Should) | 4 hari | ✅ Selesai | [08-web-dashboard.md](file:///home/itpc/UT-RBV/tasks/08-web-dashboard.md) |
-| **TASK-09** | Pengujian Terotomasi (Unit, Mock & E2E) | P1 (Should) | 2 hari | ⚪ Pending | [09-testing-qa.md](file:///home/itpc/UT-RBV/tasks/09-testing-qa.md) |
+| **TASK-09** | Pengujian Terotomasi (Unit, Mock & E2E) | P1 (Should) | 2 hari | ✅ Selesai | [09-testing-qa.md](file:///home/itpc/UT-RBV/tasks/09-testing-qa.md) |
 
 ---
 
